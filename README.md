@@ -1,7 +1,7 @@
 # Golang OpenCC
 Golang 简体繁体中文互转
 
-[![Build Status](https://github.com/teamlint/opencc/workflows/Go/badge.svg)](https://github.com/teamlint/opencc/commits/master) [![Go Report Card](https://goreportcard.com/badge/github.com/teamlint/opencc)](https://goreportcard.com/report/github.com/teamlint/opencc) [![GoDoc](https://godoc.org/github.com/teamlint/opencc?status.svg)](https://godoc.org/github.com/teamlint/opencc) [![GitHub release](https://img.shields.io/github/release/teamlint/opencc.svg)](https://github.com/teamlint/opencc/releases/latest)
+[![Go Report Card](https://goreportcard.com/badge/github.com/teamlint/opencc)](https://goreportcard.com/report/github.com/teamlint/opencc) [![GoDoc](https://godoc.org/github.com/teamlint/opencc?status.svg)](https://godoc.org/github.com/teamlint/opencc) [![GitHub release](https://img.shields.io/github/release/teamlint/opencc.svg)](https://github.com/teamlint/opencc/releases/latest)
 
 ## Introduction 介紹
 gocc is a golang port of OpenCC([Open Chinese Convert 開放中文轉換](https://github.com/BYVoid/OpenCC/)) which is a project for conversion between Traditional and Simplified Chinese developed by [BYVoid](https://www.byvoid.com/).
@@ -98,15 +98,27 @@ s2t, t2s, s2tw, tw2s, s2hk, hk2s, s2twp, tw2sp, t2tw, hk2t, t2hk, t2jp, jp2t, tw
 
 ## Updates 使用最新词典
 
-**使用最新词典**
+### **更新词典文件**
+
 获取[最新OpenCC代码](https://github.com/BYVoid/OpenCC)
-使用 OpenCC/data/config/*.json 和 OpenCC/data/dictionary/*.txt 
-替换本包的 config/*.json 和 dictionary/*.txt 相关文件
+使用 `OpenCC/data/config/*.json` 和 `OpenCC/data/dictionary/*.txt` 
+替换本包的 `config/*.json` 和 `dictionary/*.txt` 相关文件
 
-OpenCC/data/config/*.json文件中 默认匹配的是.ocd2文件 （"type": "ocd2", "file": "TSPhrases.ocd2"），全部替换为txt即可
+`OpenCC/data/config/*.json`文件中 默认匹配的是`.ocd2`文件（`"type": "ocd2", "file": "TSPhrases.ocd2"）`，全部替换为`txt`即可
 
-添加样的语言包
-如果有新添加的语, 修改 `opencc.go` 文件中 `supportedConversions` `conversions` 值即可：
+### 生成最新词典文件
+
+以下文件由部分词典文件进一步操作产生, 需要手动处理或使用 [OpenCC 脚本处理](https://github.com/BYVoid/OpenCC/tree/master/data/scripts)
+
+- `HKVariantsRev.txt` 由 `HKVariants.txt` 反转列产生
+- `JPVariantsRev.txt` 由 `JPVariants.txt` 反转列产生
+- `TWPhrases.txt` 由 `TWPhrasesIT.txt` `TWPhrasesName.txt` `TWPhrasesOther.txt` 合并产生
+- `TWPhrasesRev.txt` 由 `TWPhrases.txt` 反转列产生
+- `TWVariantsRev.txt` 由 `TWVariants.txt` 反转列产生
+
+### 添加新的语言包
+
+如果有新添加的语言, 修改 `opencc.go` 文件中 `supportedConversions` `conversions` 值, 同时增加相关词典文件即可：
 
 ```go
 	supportedConversions = "s2t, t2s, s2tw, tw2s, s2hk, hk2s, s2twp, tw2sp, t2tw, hk2t, t2hk, t2jp, jp2t, tw2t"
@@ -128,3 +140,4 @@ OpenCC/data/config/*.json文件中 默认匹配的是.ocd2文件 （"type": "ocd
 		"tw2t":  {},
 	}
 ```
+

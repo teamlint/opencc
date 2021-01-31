@@ -29,7 +29,6 @@ import (
 // tw2t ==> Traditional Chinese (Taiwan standard) to Traditional Chinese 臺灣正體到繁體（OpenCC 標準）
 
 var (
-	appDir               = defaultDir()
 	supportedConversions = "s2t, t2s, s2tw, tw2s, s2hk, hk2s, s2twp, tw2sp, t2tw, hk2t, t2hk, t2jp, jp2t, tw2t"
 	configDir            = "config"
 	dictDir              = "dictionary"
@@ -56,6 +55,9 @@ func defaultDir() string {
 	return path.Dir(p)
 }
 
+// Option OpenCC 配置项
+type Option func(*OpenCC)
+
 // Group holds a sequence of dicts
 type Group struct {
 	Files []string
@@ -71,11 +73,12 @@ type OpenCC struct {
 	Conversion  string   // 14种转换方式 简写 s2t, t2s, s2tw, tw2s, s2hk, hk2s, s2twp, tw2sp, t2tw, hk2t, t2hk, t2jp, jp2t, tw2t
 	Description string   // 选择的config/*.json文件中的方式名称 eg: s2t.json中 "name": "Simplified Chinese to Traditional Chinese",
 	DictChains  []*Group // 解析config/*.json文件中的group 将字典文件名称放入切片中 eg: s2t.json中 STPhrases.txt STCharacters.txt
+	dataDir     string
 }
 
 // New construct an instance of OpenCC.
 // Supported conversions: s2t, t2s, s2tw, tw2s, s2hk, hk2s, s2twp, tw2sp, t2tw, hk2t, t2hk, t2jp, jp2t, tw2t
-func New(conversion string) (*OpenCC, error) {
+func New(conversion string, opts ...Option) (*OpenCC, error) {
 	if strings.TrimSpace(conversion) == "" {
 		return nil, fmt.Errorf("Please select a conversion mode: %s", supportedConversions)
 	}
@@ -83,6 +86,12 @@ func New(conversion string) (*OpenCC, error) {
 		return nil, fmt.Errorf("%s The conversion mode does not exist", conversion)
 	}
 	cc := &OpenCC{Conversion: conversion}
+	for _, opt := range opts {
+		opt(cc)
+	}
+	if cc.dataDir == "" {
+		cc.dataDir = defaultDir()
+	}
 	err := cc.initDict()
 	if err != nil {
 		return nil, err
@@ -92,7 +101,7 @@ func New(conversion string) (*OpenCC, error) {
 
 // 解析字典文件到group切片中
 func (cc *OpenCC) initDict() error {
-	configFile := filepath.Join(appDir, configDir, cc.Conversion+".json")
+	configFile := filepath.Join(cc.dataDir, configDir, cc.Conversion+".json")
 	body, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		return err
@@ -175,7 +184,7 @@ func (cc *OpenCC) addDictChain(d map[string]interface{}) (*Group, error) {
 			if !has {
 				return nil, fmt.Errorf("no file field found")
 			}
-			daDict, err := BuildFromFile(filepath.Join(appDir, dictDir, file.(string))) // 获取txt中数据
+			daDict, err := BuildFromFile(filepath.Join(cc.dataDir, dictDir, file.(string))) // 获取txt中数据
 			if err != nil {
 				return nil, err
 			}
@@ -227,4 +236,11 @@ func (cc *OpenCC) Convert(in string) (string, error) {
 		in = strings.Join(tokens, "")
 	}
 	return in, nil
+}
+
+// WithDir 词典数据主目录
+func WithDir(dir string) Option {
+	return func(cc *OpenCC) {
+		cc.dataDir = dir
+	}
 }
